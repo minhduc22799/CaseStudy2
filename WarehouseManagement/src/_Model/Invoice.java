@@ -1,27 +1,51 @@
 package _Model;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Bill{
+public class Invoice implements Serializable {
     private String name;
     private Double price;
     private LocalDate date;
     private int amount;
     private Product product;
 
-    public Bill() {
+    private Double total;
+
+    public Invoice() {
     }
 
-    public Bill(String name, Double price, LocalDate date, int amount, Product product) {
+    public Invoice(String name, Double price, LocalDate date, int amount, Product product, Double total) {
         this.name = name;
         this.price = price;
         this.date = date;
         this.amount = amount;
         this.product = product;
+        this.total = total;
+    }
+
+    public Invoice(String name, LocalDate date) {
+        this.name = name;
+        this.date = date;
+    }
+
+    public Invoice(Double price, int amount, Product product, Double total) {
+        this.price = price;
+        this.amount = amount;
+        this.product = product;
+        this.total = total;
     }
 
     public String getName() {
         return name;
+    }
+
+    public Double getTotal() {
+        return total;
+    }
+
+    public void setTotal(Double total) {
+        this.total = total;
     }
 
     public void setName(String name) {

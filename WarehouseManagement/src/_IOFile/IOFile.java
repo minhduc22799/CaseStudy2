@@ -1,7 +1,4 @@
 package _IOFile;
-
-
-
 import java.io.*;
 import java.util.ArrayList;
 

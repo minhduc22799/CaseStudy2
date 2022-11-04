@@ -11,8 +11,8 @@ import java.util.Scanner;
 
 public class ProductManager {
 
-    private final ArrayList<Product> products ;
-    IOFile<Product> ioFile = new IOFile<>();
+    public static ArrayList<Product> products ;
+    public static IOFile<Product> ioFile = new IOFile<>();
 
 
     public ProductManager(){
@@ -20,22 +20,20 @@ public class ProductManager {
     }
     public void addProduct(ArrayList<Category> categories, Scanner scanner) {
         try {
-
+            System.out.println("Enter new category: ");
+            Category category = getCategoryByIndex(categories, scanner);
             System.out.println("Enter new name: ");
             String name = scanner.nextLine();
             System.out.println("Enter new price: ");
             Double price = Double.parseDouble(scanner.nextLine());
             System.out.println("Enter new quantity: ");
             int quantity = Integer.parseInt(scanner.nextLine());
-            System.out.println("Enter new category: ");
-            Category category = getCategoryByIndex(categories, scanner);
             Product product = new Product(name, price, quantity, category);
+            if (products.size() > 0){
+                product.setId(products.get(products.size()-1).getId() + 1 );
+            }
             products.add(product);
             ioFile.writeFile(products, "src/File/product.txt");
-            if (products.size() > 0){
-                product.setId(products.size());
-            }
-
         } catch (NumberFormatException | InputMismatchException e) {
             System.out.println(e.getMessage());
         }
@@ -44,7 +42,7 @@ public class ProductManager {
 
     private Category getCategoryByIndex(ArrayList<Category> categories, Scanner scanner) {
         for (int i = 0; i < categories.size(); i++) {
-            System.out.println((i + 1) + ". " + categories.get(i).getName());
+            System.out.println(i+1 + ". " + categories.get(i).getName());
         }
         System.out.println("0. Not choice");
         int choice;
@@ -58,6 +56,7 @@ public class ProductManager {
                 if (choice > 0 && choice <= categories.size()) {
                     return categories.get(choice - 1);
                 }
+
                 System.err.println("Please re-enter your selection!");
             } while (choice < 0 || choice > categories.size());
         } catch (NumberFormatException | InputMismatchException e) {
@@ -131,6 +130,7 @@ public class ProductManager {
         return null;
     }
 
+
     public void displayByCategory(ArrayList<Category> categories, Scanner scanner) {
         System.out.println("Enter your choice: ");
         Category category = getCategoryByIndex(categories, scanner);
@@ -146,10 +146,9 @@ public class ProductManager {
     }
 
     public void displayProduct() {
-        System.out.printf("%-10s%-10s%-15s%-20s%s", "ID", "Name", "Price", "Quantity", "Category\n");
-        for (Product p : products) {
-            p.display();
-
+        System.out.printf("%-10s%-10s%-15s%-20s%s", "ID", "Name", "Price", "Quantity", "Category\n\n");
+        for (Product product : products) {
+            product.display();
         }
     }
 

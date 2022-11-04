@@ -21,15 +21,15 @@ public class CategoryManager {
         String name = scanner.nextLine();
         Category category = new Category(name);
         if (categories.size() > 0){
-            category.setId(categories.size());
+            category.setId(categories.get(categories.size()-1).getId() +1);
         }
         categories.add(category);
         ioFile.writeFile(categories, "src/File/category.txt");
     }
-    public  void displayCategory() {
-        System.out.println("ID "+" Category");
-        for (Category category : categories) {
-            System.out.println(category.toString());
+    public static void displayCategory() {
+        System.out.println("ID "+" Category"+"\n");
+        for (int i = 0; i < categories.size(); i++) {
+            System.out.println(categories.get(i).getId() + "   " + categories.get(i).getName());
         }
 
     }
@@ -39,14 +39,14 @@ public class CategoryManager {
         } else {
             System.out.println("Enter id: ");
             long id = Long.parseLong(scanner.nextLine());
-            Category categoryTemp = new Category();
+
                 for (int i = 0; i < categories.size(); i++) {
                 if (categories.get(i).getId() == id) {
-                        categoryTemp = categories.get(i);
+                    categories.remove(i);
                     ioFile.writeFile(categories, "src/File/category.txt");
                 }
             }
-                categories.remove(categoryTemp);
+
 
             System.out.println("Xoa thanh cong");
         }
