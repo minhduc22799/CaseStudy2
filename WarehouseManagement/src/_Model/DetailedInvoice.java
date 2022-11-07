@@ -9,4 +9,6 @@ public class DetailedInvoice extends Invoice implements Serializable {
         super(price, amount, product,price*amount);
     }
 
+    public DetailedInvoice() {
+    }
 }
