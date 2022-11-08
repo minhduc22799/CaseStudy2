@@ -28,8 +28,8 @@ public class CategoryManager {
     }
     public static void displayCategory() {
         System.out.println("ID "+" Category"+"\n");
-        for (int i = 0; i < categories.size(); i++) {
-            System.out.println(categories.get(i).getId() + "   " + categories.get(i).getName());
+        for (Category category : categories) {
+            System.out.println(category.getId() + "   " + category.getName());
         }
 
     }

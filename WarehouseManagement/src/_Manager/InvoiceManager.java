@@ -9,60 +9,68 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class InvoiceManager {
-    public static ArrayList<Invoice> listInvoices = new ArrayList<>();
-    public static ArrayList<ArrayList<DetailedInvoice>> listDetailInvoiceImport = new ArrayList<>();
-    public static ArrayList<ArrayList<DetailedInvoice>> listDetailInvoiceExport = new ArrayList<>();
-    public static IOFile<Invoice> ioFile = new IOFile<>();
-    public static IOFile<ArrayList<DetailedInvoice>> ioFileDetail = new IOFile<>();
-    public static int count ;
-    public InvoiceManager() {
+    public ArrayList<ImportInvoice> listInvoicesImport = new ArrayList<>();
 
+    public ArrayList<ExportInvoice> listInvoicesExport = new ArrayList<>();
+    public ArrayList<ArrayList<DetailedInvoice>> listDetailInvoiceImport = new ArrayList<>();
+    public ArrayList<ArrayList<DetailedInvoice>> listDetailInvoiceExport = new ArrayList<>();
+    public IOFile<ImportInvoice> ioFileImport = new IOFile<>();
+    public IOFile<ExportInvoice> ioFileExport = new IOFile<>();
+    public IOFile<ArrayList<DetailedInvoice>> ioFileDetail = new IOFile<>();
+    public int count;
+    public double sumTotalImport;
+    public double sumTotalExport;
+
+
+    public InvoiceManager() {
     }
 
-
-    private static void readFile() {
-        listInvoices = ioFile.readFile("src/File/bill.txt");
+    private void readFile() {
+        listInvoicesImport = ioFileImport.readFile("src/File/bill.txt");
+        listInvoicesExport = ioFileExport.readFile("src/File/billExport.txt");
         listDetailInvoiceImport = ioFileDetail.readFile("src/File/detail.txt");
         listDetailInvoiceExport = ioFileDetail.readFile("src/File/detailExport.txt");
     }
+
     public void addBillImport(ArrayList<Product> products, Scanner scanner) {
         readFile();
-        count=listDetailInvoiceImport.size()  ;
+        count = listDetailInvoiceImport.size();
         createDetailInvoiceImport(products, scanner);
+
         System.out.println("Enter date import:(dd/MM/yyy)");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
         String dateInput = scanner.nextLine();
         LocalDate date = LocalDate.parse(dateInput, formatter);
-        ImportInvoice importInvoice = new ImportInvoice(date, listDetailInvoiceImport.get(count ));
-        if (listInvoices.size() > 0) {
-            if (listInvoices.get(listInvoices.size() - 1) instanceof ImportInvoice) {
-                ( importInvoice).setId(((ImportInvoice) listInvoices.get(listInvoices.size() - 1)).getId() + 1);
-            }
-
+        ImportInvoice importInvoice = new ImportInvoice(date, listDetailInvoiceImport.get(count));
+        if (listInvoicesImport.size() > 0) {
+            importInvoice.setId((listInvoicesImport.get(listInvoicesImport.size() - 1)).getId() + 1);
         }
-        listInvoices.add(importInvoice);
-        ioFile.writeFile(listInvoices, "src/File/bill.txt");
-        displayInvoice();
+        if (importInvoice.getAmount() > 0) {
+            listInvoicesImport.add(importInvoice);
+            ioFileImport.writeFile(listInvoicesImport, "src/File/bill.txt");
+            displayInvoiceImport();
+        }
     }
 
-
-    public  void addBillExport(ArrayList<Product> products, Scanner scanner) {
+    public void addBillExport(ArrayList<Product> products, Scanner scanner) {
         readFile();
-        count=listDetailInvoiceExport.size()  ;
+        count = listDetailInvoiceExport.size();
         createDetailInvoiceExport(products, scanner);
         System.out.println("Enter date import:(dd/MM/yyy)");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
         String dateInput = scanner.nextLine();
         LocalDate date = LocalDate.parse(dateInput, formatter);
-        ExportInvoice exportInvoice = new ExportInvoice(date, listDetailInvoiceExport.get(count ));
-        if (listInvoices.size() > 0) {
-            if (listInvoices.get(listInvoices.size() - 1) instanceof ExportInvoice) {
-                ( exportInvoice).setId(((ExportInvoice) listInvoices.get(listInvoices.size() - 1)).getId() + 1);
-            }
+        ExportInvoice exportInvoice = new ExportInvoice(date, listDetailInvoiceExport.get(count));
+        if (listInvoicesExport.size() > 0) {
+            exportInvoice.setId((listInvoicesExport.get(listInvoicesExport.size() - 1)).getId() + 1);
         }
-        listInvoices.add(exportInvoice);
-        ioFile.writeFile(listInvoices, "src/File/bill.txt");
-        displayInvoiceExport();
+        if (exportInvoice.getAmount() > 0) {
+            listInvoicesExport.add(exportInvoice);
+            ioFileExport.writeFile(listInvoicesExport, "src/File/billExport.txt");
+            displayInvoiceExport();
+        } else {
+            System.out.println("Quantity is not enough");
+        }
     }
 
     public void createDetailInvoiceImport(ArrayList<Product> products, Scanner scanner) {
@@ -94,64 +102,94 @@ public class InvoiceManager {
             product = getProductByIndex(products, scanner);
             if (product != null) {
                 System.out.println("Enter amount import: ");
-                    int amount = Integer.parseInt(scanner.nextLine());
-                    double price = product.getPrice();
-                    DetailedInvoice detailedInvoice = new DetailedInvoice(price, amount, product);
-                    listDetailInvoice.add(detailedInvoice);
-                    product.setQuantity(product.getQuantity() - amount);
-                    ProductManager.ioFile.writeFile(ProductManager.products, "src/File/product.txt");
+                int amount = Integer.parseInt(scanner.nextLine());
+                double price = product.getPrice();
+                DetailedInvoice detailedInvoice = new DetailedInvoice(price, amount, product);
+                listDetailInvoice.add(detailedInvoice);
+                if (product.getQuantity() < amount) {
+                    System.out.println("quantity is not enough");
+                    break;
                 }
+                product.setQuantity(product.getQuantity() - amount);
+                ProductManager.ioFile.writeFile(ProductManager.products, "src/File/product.txt");
+            }
         } while (product != null);
         listDetailInvoiceExport.add(listDetailInvoice);
         ioFileDetail.writeFile(listDetailInvoiceExport, "src/File/detailExport.txt");
     }
 
-    public static void displayInvoice() {
+    public void displayInvoiceImport() {
         readFile();
-        double sumTotal = 0;
-        for (Invoice listInvoice : listInvoices) {
-            if (listInvoice instanceof ImportInvoice) {
-                System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "ID", "Name", "Date", "Name Product", "Price",
-                        "Amount", "Total");
-                System.out.printf("\n%-10s%-20s%-20s", ((ImportInvoice) listInvoice).getId(),
-                        listInvoice.getName(), listInvoice.getDate());
-                for (int j = 0; j < ((ImportInvoice) listInvoice).getDetailedInvoices().size(); j++) {
-                    sumTotal += ((ImportInvoice) listInvoice).getDetailedInvoices().get(j).getTotal();
-                    System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "", "", "",
-                            ((ImportInvoice) listInvoice).getDetailedInvoices().get(j).getProduct().getName(),
-                            ((ImportInvoice) listInvoice).getDetailedInvoices().get(j).getPrice()
-                            , ((ImportInvoice) listInvoice).getDetailedInvoices().get(j).getAmount(),
-                            ((ImportInvoice) listInvoice).getDetailedInvoices().get(j).getTotal());
-                }
-                System.out.println("\n------------------------------------------------------------------------------------" +
-                        "--------------------\n\n");
+        double sumInvoice = 0;
+        double temp = 0;
+        System.out.printf("%-15s%-15s%-15s%s", "", "", "", "Import Invoice\n\n");
+        for (ImportInvoice listInvoice : listInvoicesImport) {
+            System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "ID", "Name", "Date", "Name Product", "Price",
+                    "Amount", "Total");
+            System.out.printf("\n%-10s%-20s%-20s", listInvoice.getId(),
+                    listInvoice.getName(), listInvoice.getDate());
+
+            double sumDetail = 0;
+            for (int j = 0; j < listInvoice.getDetailedInvoices().size(); j++) {
+                sumDetail += listInvoice.getDetailedInvoices().get(j).getTotal();
+                System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "", "", "",
+                        listInvoice.getDetailedInvoices().get(j).getProduct().getName(),
+                        listInvoice.getDetailedInvoices().get(j).getPrice()
+                        , listInvoice.getDetailedInvoices().get(j).getAmount(),
+                        listInvoice.getDetailedInvoices().get(j).getTotal());
+
             }
+            temp += sumDetail;
+            System.out.println("\n------------------------------------------------------------------------------------" +
+                    "--------------------");
+            System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-12s%s", "Total Invoice", "", "", "", "", "", sumDetail + "\n");
+
+
         }
-        System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "Total", "", "", "", "", "", sumTotal + "\n");
+        sumInvoice += temp;
+        sumTotalImport = sumInvoice;
+
+        System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "Total", "", "", "", "", "", sumInvoice + "\n");
+
+
     }
 
-    public  void displayInvoiceExport() {
+    public void displayInvoiceExport() {
         readFile();
-        double sumTotal = 0;
-        for (Invoice listInvoice : listInvoices) {
-            if (listInvoice instanceof ExportInvoice) {
-                System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "ID", "Name", "Date", "Name Product", "Price",
-                        "Amount", "Total");
-                System.out.printf("\n%-10s%-20s%-20s", ((ExportInvoice) listInvoice).getId(),
-                        listInvoice.getName(), listInvoice.getDate());
-                for (int j = 0; j < ((ExportInvoice) listInvoice).getDetailedExport().size(); j++) {
-                    sumTotal += ((ExportInvoice) listInvoice).getDetailedExport().get(j).getTotal();
-                    System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "", "", "",
-                            ((ExportInvoice) listInvoice).getDetailedExport().get(j).getProduct().getName(),
-                            ((ExportInvoice) listInvoice).getDetailedExport().get(j).getPrice()
-                            , ((ExportInvoice) listInvoice).getDetailedExport().get(j).getAmount(),
-                            ((ExportInvoice) listInvoice).getDetailedExport().get(j).getTotal());
-                }
-                System.out.println("\n------------------------------------------------------------------------------------" +
-                        "--------------------\n\n");
+        double sumInvoice = 0;
+        double temp = 0;
+        System.out.printf("%-15s%-15s%-15s%s", "", "", "", "Export Invoice\n\n");
+        for (ExportInvoice listInvoice : listInvoicesExport) {
+            System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "ID", "Name", "Date", "Name Product", "Price",
+                    "Amount", "Total");
+            System.out.printf("\n%-10s%-20s%-20s", listInvoice.getId(),
+                    listInvoice.getName(), listInvoice.getDate());
+            double sumDetail = 0;
+            for (int j = 0; j < listInvoice.getDetailedExport().size(); j++) {
+                sumDetail += listInvoice.getDetailedExport().get(j).getTotal();
+                sumTotalExport += listInvoice.getDetailedExport().get(j).getTotal();
+                System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "", "", "",
+                        listInvoice.getDetailedExport().get(j).getProduct().getName(),
+                        listInvoice.getDetailedExport().get(j).getPrice()
+                        , listInvoice.getDetailedExport().get(j).getAmount(),
+                        listInvoice.getDetailedExport().get(j).getTotal());
             }
+            System.out.println("\n------------------------------------------------------------------------------------" +
+                    "--------------------");
+            System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-12s%s", "Total Invoice", "", "", "", "", "", sumDetail + "\n");
+            temp += sumDetail;
         }
-        System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "Total", "", "", "", "", "", sumTotal + "\n");
+        sumInvoice += temp;
+        sumTotalExport = sumInvoice;
+        System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-15s%s", "Total", "", "", "", "", "", sumInvoice + "\n");
+    }
+
+    public void sumProfit() {
+        double sumProfit;
+        displayInvoiceImport();
+        displayInvoiceExport();
+        sumProfit = sumTotalExport - sumTotalImport;
+        System.out.printf("\n%-10s%-20s%-20s%-18s%-15s%-13s%s", "Total Profit", "", "", "", "", "", sumProfit + "\n");
     }
 
     private Product getProductByIndex(ArrayList<Product> products, Scanner scanner) {

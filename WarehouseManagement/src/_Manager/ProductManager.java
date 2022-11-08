@@ -19,21 +19,24 @@ public class ProductManager {
         products = ioFile.readFile("src/File/product.txt");
     }
     public void addProduct(ArrayList<Category> categories, Scanner scanner) {
+        Category category;
         try {
             System.out.println("Enter new category: ");
-            Category category = getCategoryByIndex(categories, scanner);
-            System.out.println("Enter new name: ");
-            String name = scanner.nextLine();
-            System.out.println("Enter new price: ");
-            Double price = Double.parseDouble(scanner.nextLine());
-            System.out.println("Enter new quantity: ");
-            int quantity = Integer.parseInt(scanner.nextLine());
-            Product product = new Product(name, price, quantity, category);
-            if (products.size() > 0){
-                product.setId(products.get(products.size()-1).getId() + 1 );
+            category = getCategoryByIndex(categories, scanner);
+            if (category!=null) {
+                System.out.println("Enter new name: ");
+                String name = scanner.nextLine();
+                System.out.println("Enter new price: ");
+                Double price = Double.parseDouble(scanner.nextLine());
+                System.out.println("Enter new quantity: ");
+                int quantity = Integer.parseInt(scanner.nextLine());
+                Product product = new Product(name, price, quantity, category);
+                if (products.size() > 0) {
+                    product.setId(products.get(products.size() - 1).getId() + 1);
+                }
+                products.add(product);
+                ioFile.writeFile(products, "src/File/product.txt");
             }
-            products.add(product);
-            ioFile.writeFile(products, "src/File/product.txt");
         } catch (NumberFormatException | InputMismatchException e) {
             System.out.println(e.getMessage());
         }
