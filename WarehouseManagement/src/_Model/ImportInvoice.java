@@ -14,7 +14,7 @@ public class ImportInvoice extends Invoice implements Serializable {
     }
 
     public ImportInvoice(LocalDate date, ArrayList<DetailedInvoice> detailedInvoices) {
-        super("Import Invoice", date);
+        super("Import Invoice" , date);
         this.id = Long.valueOf(++INDEX);
         this.detailedInvoices = detailedInvoices;
     }

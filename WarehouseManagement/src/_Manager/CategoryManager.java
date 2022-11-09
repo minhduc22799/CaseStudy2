@@ -19,12 +19,17 @@ public class CategoryManager {
     public void addCategory(Scanner scanner) {
         System.out.println("Enter name category");
         String name = scanner.nextLine();
+        if (!checkName(name)){
         Category category = new Category(name);
+
         if (categories.size() > 0){
             category.setId(categories.get(categories.size()-1).getId() +1);
         }
         categories.add(category);
         ioFile.writeFile(categories, "src/File/category.txt");
+    }else {
+            System.out.println("Category existed");
+        }
     }
     public static void displayCategory() {
         System.out.println("ID "+" Category"+"\n");
@@ -53,6 +58,13 @@ public class CategoryManager {
         displayCategory();
     }
 
+    private boolean checkName(String name){
+        for (int i = 0; i <categories.size() ; i++) {
+            if (categories.get(i).getName().equalsIgnoreCase(name)){
+                return true;
+            }
+        }return false;
+    }
 
 
 }

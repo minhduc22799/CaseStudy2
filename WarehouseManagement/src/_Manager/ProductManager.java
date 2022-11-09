@@ -26,16 +26,21 @@ public class ProductManager {
             if (category!=null) {
                 System.out.println("Enter new name: ");
                 String name = scanner.nextLine();
-                System.out.println("Enter new price: ");
-                Double price = Double.parseDouble(scanner.nextLine());
-                System.out.println("Enter new quantity: ");
-                int quantity = Integer.parseInt(scanner.nextLine());
-                Product product = new Product(name, price, quantity, category);
-                if (products.size() > 0) {
-                    product.setId(products.get(products.size() - 1).getId() + 1);
+                if (!checkName(name)) {
+                    System.out.println("Enter new price: ");
+                    Double price = Double.parseDouble(scanner.nextLine());
+                    System.out.println("Enter new quantity: ");
+                    int quantity = Integer.parseInt(scanner.nextLine());
+                    Product product = new Product(name, price, quantity, category);
+                    if (products.size() > 0) {
+                        product.setId(products.get(products.size() - 1).getId() + 1);
+                    }
+                    products.add(product);
+                    ioFile.writeFile(products, "src/File/product.txt");
                 }
-                products.add(product);
-                ioFile.writeFile(products, "src/File/product.txt");
+                else {
+                    System.out.println("Product existed");
+                }
             }
         } catch (NumberFormatException | InputMismatchException e) {
             System.out.println(e.getMessage());
@@ -134,17 +139,15 @@ public class ProductManager {
     }
 
 
-    public void displayByCategory(ArrayList<Category> categories, Scanner scanner) {
-        System.out.println("Enter your choice: ");
-        Category category = getCategoryByIndex(categories, scanner);
-        if (category != null) {
-            for (Product p : products) {
-                if (p.getCategory().equals(category)) {
-                    System.out.println(p);
-                }
+    public void displayProductByNameContaining(Scanner scanner) {
+        System.out.println("Enter character you want search: ");
+        String search = scanner.nextLine();
+        System.out.println("List product have name contains " + search + ": \n");
+        System.out.printf("%-10s%-10s%-15s%-20s%s", "ID", "Name", "Price", "Quantity", "Category\n\n");
+        for (Product p : products) {
+            if (p.getName().toLowerCase().contains(search.toLowerCase())) {
+                p.display();
             }
-        } else {
-            System.err.println("Not exist product have category!");
         }
     }
 
@@ -155,7 +158,13 @@ public class ProductManager {
         }
     }
 
-
+    private boolean checkName(String name){
+        for (int i = 0; i <products.size() ; i++) {
+            if (products.get(i).getName().equalsIgnoreCase(name)){
+                return true;
+            }
+        }return false;
+    }
 
 
 }
